@@ -8,7 +8,22 @@
 (function(){
   var url = "https://dftapi.cisco.com/dft/cda/software-metadata/generate-id/post";
   var softwareId = null;
+  var duplicatedNodeId = "repository-nav-pull-requests";
   var CDAElement = null;
+  var CDAElementId = "cda-nav-link";
+  var selectors = [
+    "div.aui-sidebar-group.aui-sidebar-group-tier-one.sidebar-navigation ul", // Parent element selector
+    "#cda-nav-link span.icon-pull-requests", // Image element selector
+    "#cda-nav-link span.aui-nav-item-label", // Tooltip selector
+    "#cda-nav-link span.aui-badge" // Selector for removing pull request tooltip on clone
+  ];
+
+  var data = {
+    iconUrl: "url('https://cdanalytics.cisco.com/images/avatar.png')",
+    iconSize: "20px 20px",
+    hrefLocation: "http://cdanalytics.cisco.com/application/software/$&/summary",
+    tooltipInfo: "CDA Website"
+  };
   
   // Gets payload data from webpage
   function getMetadata() {
@@ -42,13 +57,16 @@
     });
   }
   
-  function populateData(error, data) {
+  function populateData(error, resp) {
     console.log("Received response: ");
-    console.log(JSON.parse(data));
-    if (!error && data) {
-      softwareId = JSON.parse(data).data.softwareKey;
+    console.log(JSON.parse(resp));
+    if (!error && resp) {
+      softwareId = JSON.parse(resp).data.softwareKey;
       console.log("Have software ID: " + softwareId);
-      CDAElement.setAttribute("href", "http://cdanalytics.cisco.com/application/software/" + softwareId + "/summary");
+      
+      var newUrl = softwareId.replace(softwareId, data.hrefLocation);
+      console.log("CDA url determined as: " + newUrl);
+      CDAElement.setAttribute("href", newUrl);
     } else if (error) {
       console.log(error);
     }
@@ -56,24 +74,24 @@
   }
   
   function createElement() {
-      var dupe = document.getElementById("repository-nav-pull-requests").cloneNode(true);
+      var dupe = document.getElementById(duplicatedNodeId).cloneNode(true);
       dupe.setAttribute("href", "#");
       dupe.removeAttribute("data-web-item-key");
-      dupe.setAttribute("id", "cda-nav-link");
+      dupe.setAttribute("id", CDAElementId);
       dupe.setAttribute("target", "_blank");
     
       var newLi = document.createElement("li");
       newLi.append(dupe);
       CDAElement = dupe;
       
-      var el = document.querySelector("div.aui-sidebar-group.aui-sidebar-group-tier-one.sidebar-navigation ul");
+      var el = document.querySelector(selectors[0]);
       el.append(newLi);
     
-      var img = document.querySelector("#cda-nav-link span.icon-pull-requests");
-      img.style.backgroundImage = "url('https://cdanalytics.cisco.com/images/avatar.png')";
-      img.style.backgroundSize = "20px 20px";
-      document.querySelector("#cda-nav-link span.aui-nav-item-label").innerHTML = "CDA Website";
-      var badge = document.querySelector("#cda-nav-link span.aui-badge");
+      var img = document.querySelector(selectors[1]);
+      img.style.backgroundImage = data.iconUrl;
+      img.style.backgroundSize = data.iconSize;
+      document.querySelector(selectors[2]).innerHTML = data.tooltipInfo;
+      var badge = document.querySelector(selectors[3]);
       if (badge) {
         badge.remove();
       }
