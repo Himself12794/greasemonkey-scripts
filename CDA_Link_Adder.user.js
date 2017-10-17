@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        CDA Link Adder
 // @namespace   himself12794-develops.com
-// @include     https://gitscm.cisco.com/projects/*/repos/*/browse*
+// @include     *gitscm.cisco.com/projects/*/repos/*
 // @version     1
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
