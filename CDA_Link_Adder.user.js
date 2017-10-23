@@ -2,11 +2,12 @@
 // @name        CDA Link Adder
 // @namespace   himself12794-develops.com
 // @include     *gitscm.cisco.com/projects/*/repos/*
-// @version     1.0.1
+// @version     1.1.0
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 (function(){
   var url = "https://dftapi.cisco.com/dft/cda/software-metadata/generate-id/post";
+  var verifyUrl = "https://dftapi.cisco.com/code/cda/metadata/v2/software/";
   var softwareId = null;
   var duplicatedNodeId = "repository-nav-pull-requests";
   var CDAElement = null;
@@ -32,6 +33,39 @@
       scmUrl: element.getAttribute("data-clone-url"),
       scmType: "git"
     };
+  }
+  
+  function hideElement() {
+	CDAElement.style.display = "none";
+  }
+  
+  function showElement() {
+	  CDAElement.style.display = "";
+  }
+  
+  function createElement() {
+    var dupe = document.getElementById(duplicatedNodeId).cloneNode(true);
+    dupe.setAttribute("href", "#");
+    dupe.removeAttribute("data-web-item-key");
+    dupe.setAttribute("id", CDAElementId);
+    dupe.setAttribute("target", "_blank");
+    
+    var newLi = document.createElement("li");
+    newLi.append(dupe);
+    CDAElement = dupe;
+      
+    var el = document.querySelector(selectors[0]);
+    el.append(newLi);
+    
+    var img = document.querySelector(selectors[1]);
+    img.style.backgroundImage = data.iconUrl;
+    img.style.backgroundSize = data.iconSize;
+    document.querySelector(selectors[2]).innerHTML = data.tooltipInfo;
+    var badge = document.querySelector(selectors[3]);
+    if (badge) {
+      badge.remove();
+    }
+	hideElement();
   }
   
   function getSoftwareData(next) {
@@ -63,38 +97,39 @@
     if (!error && resp) {
       softwareId = JSON.parse(resp).data.softwareKey;
       console.log("Have software ID: " + softwareId);
-      
-      var newUrl = softwareId.replace(softwareId, data.hrefLocation);
-      console.log("CDA url determined as: " + newUrl);
-      CDAElement.setAttribute("href", newUrl);
+	  
+	  var newUrl = softwareId.replace(softwareId, data.hrefLocation);
+	  console.log("CDA url determined as: " + newUrl);
+	  CDAElement.setAttribute("href", newUrl); 
+	  
+	  // Only show if this software exists
+      verifySoftwareExists(softwareId, showElement, hideElement);
+	  
     } else if (error) {
       console.log(error);
+	  hideElement();
     }
     
   }
   
-  function createElement() {
-      var dupe = document.getElementById(duplicatedNodeId).cloneNode(true);
-      dupe.setAttribute("href", "#");
-      dupe.removeAttribute("data-web-item-key");
-      dupe.setAttribute("id", CDAElementId);
-      dupe.setAttribute("target", "_blank");
-    
-      var newLi = document.createElement("li");
-      newLi.append(dupe);
-      CDAElement = dupe;
-      
-      var el = document.querySelector(selectors[0]);
-      el.append(newLi);
-    
-      var img = document.querySelector(selectors[1]);
-      img.style.backgroundImage = data.iconUrl;
-      img.style.backgroundSize = data.iconSize;
-      document.querySelector(selectors[2]).innerHTML = data.tooltipInfo;
-      var badge = document.querySelector(selectors[3]);
-      if (badge) {
-        badge.remove();
+  function verifySoftwareExists(softwareId, success, error) {
+	  	  
+    GM_xmlhttpRequest({
+      method: "HEAD",
+      url: verifyUrl + softwareId,
+      onload: function(response) {
+		console.log(response.status);
+        if (response.status == 404) {
+          error();
+        } else {
+          success();
+		}
+      },
+      onerror: function(response) {
+        error();
       }
+    });
+	  
   }
   
   function main() {
