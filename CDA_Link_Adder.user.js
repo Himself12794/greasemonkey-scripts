@@ -3,6 +3,7 @@
 // @namespace   himself12794-develops.com
 // @include     *gitscm.cisco.com/projects/*/repos/*
 // @version     1.1
+// @downloadURL https://github.com/Himself12794/greasemonkey-scripts/raw/master/CDA_Link_Adder.user.js
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 (function(){
