@@ -2,7 +2,7 @@
 // @name        CDA Link Adder
 // @namespace   himself12794-develops.com
 // @include     *gitscm.cisco.com/projects/*/repos/*
-// @version     1.1
+// @version     1.2
 // @downloadURL https://gitscm.cisco.com/projects/CALL/repos/cda-userscript-for-browsers/raw/CDA_Link_Adder.user.js
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
@@ -66,7 +66,7 @@
     if (badge) {
       badge.remove();
     }
-	hideElement();
+    hideElement();
   }
   
   function getSoftwareData(next) {
@@ -104,11 +104,11 @@
 	  CDAElement.setAttribute("href", newUrl); 
 	  
 	  // Only show if this software exists
-      verifySoftwareExists(softwareId, showElement, hideElement);
+    verifySoftwareExists(softwareId, showElement, hideElement);
 	  
     } else if (error) {
       console.log(error);
-	  hideElement();
+      hideElement();
     }
     
   }
@@ -116,14 +116,19 @@
   function verifySoftwareExists(softwareId, success, error) {
 	  	  
     GM_xmlhttpRequest({
-      method: "HEAD",
+      method: "GET",
       url: verifyUrl + softwareId,
       onload: function(response) {
-		console.log(response.status);
+		    console.log(response.status);
         if (response.status == 404) {
           error();
         } else {
-          success();
+          var resp = JSON.parse(response.responseText);
+          if (resp.data.enabled) {
+            success();
+          } else {
+            error();
+          }
 		}
       },
       onerror: function(response) {
